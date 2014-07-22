@@ -1,7 +1,28 @@
 #cloud-config
 
+users:
+  - name: lroot
+    groups:
+      - sudo
+      - docker
+    ssh-authorized-keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAvFapuevZeHFpFn438XMjvEQYd0wt7+tzUdAkMiSd007Tx1h79Xm9ZziDDUe4W6meinVOq93MAS/ER27hoVWGo2H/vn/Cz5M8xr2j5rQODnrF3RmfrJTbZAWaDN0JTq2lFjmCHhZJNhr+VQP1uw4z2ofMBP6MLybnLmm9ukzxFYZqCCyfEEUTCMA9SWywtTpGQp8VLM4INCxzBSCuyt3SO6PBvJSo4HoKg/sLvmRwpCVZth48PI0EUbJ72wp88Cw3bv8CLce2TOkLMwkE6NRN55w2aOyqP1G3vixHa6YcVaLlkQhJoJsBwE3rX5603y2KjOhMomqHfXxXn/3GKTWlsQ==
+
 coreos:
     units:
+      - name: metadata-zeroconf-route.service
+        command: restart
+        runtime: yes
+        content: |
+          [Unit]
+          Description=Add zeroconf route
+          Requires=systemd-networkd.service
+          After=systemd-networkd.service
+
+          [Service]
+          Type=oneshot
+          StandardOutput=journal+console
+          ExecStart=/usr/bin/ip route add 169.254.0.0/16 dev ens32 scope link
       - name: user-configdrive.service
         mask: yes
       - name: user-configvirtfs.service
