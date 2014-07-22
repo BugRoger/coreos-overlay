@@ -10,8 +10,8 @@ SRC_URI=""
 LICENSE="Apache-2.0"
 SLOT="0"
 KEYWORDS="amd64 x86"
-IUSE="ec2 openstack brightbox"
-REQUIRED_USE="^^ ( ec2 openstack brightbox )"
+IUSE="ec2 openstack brightbox monsoon"
+REQUIRED_USE="^^ ( ec2 openstack brightbox monsoon )"
 
 # no source directory
 S="${WORKDIR}"
@@ -29,6 +29,10 @@ src_prepare() {
 		ID="brightbox"
 		NAME="Brightbox"
 		HOME_URL="http://brightbox.com/"
+	elif use monsoon ; then
+	    ID="monsoon"
+		NAME="SAP Monsoon"
+		HOME_URL="http://monsoon.mo.sap.corp"
 	else
 		die "Unknown OEM!"
 	fi
