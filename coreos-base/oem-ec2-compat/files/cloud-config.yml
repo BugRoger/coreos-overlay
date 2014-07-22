@@ -37,6 +37,10 @@ coreos:
           [Service]
           Type=oneshot
           ExecStart=/usr/bin/coreos-cloudinit --from-configdrive=/media/configdrive --from-metadata-service
+      - name: etcd.service
+        command: start
+      - name: fleet.service
+        command: start
     oem:
       id: @@OEM_ID@@
       name: @@OEM_NAME@@
