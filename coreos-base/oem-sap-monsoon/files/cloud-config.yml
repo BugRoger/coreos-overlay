@@ -1,0 +1,100 @@
+#cloud-config
+
+users:
+  - name: lroot
+    groups:
+      - sudo
+      - docker
+    ssh-authorized-keys:
+    - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAvFapuevZeHFpFn438XMjvEQYd0wt7+tzUdAkMiSd007Tx1h79Xm9ZziDDUe4W6meinVOq93MAS/ER27hoVWGo2H/vn/Cz5M8xr2j5rQODnrF3RmfrJTbZAWaDN0JTq2lFjmCHhZJNhr+VQP1uw4z2ofMBP6MLybnLmm9ukzxFYZqCCyfEEUTCMA9SWywtTpGQp8VLM4INCxzBSCuyt3SO6PBvJSo4HoKg/sLvmRwpCVZth48PI0EUbJ72wp88Cw3bv8CLce2TOkLMwkE6NRN55w2aOyqP1G3vixHa6YcVaLlkQhJoJsBwE3rX5603y2KjOhMomqHfXxXn/3GKTWlsQ==
+
+write_files:
+    - path: /etc/environment
+      permissions: 0644
+      content: |
+        COREOS_PRIVATE_IPV4=$public_ipv4
+        all_proxy=http://proxy.wdf.sap.corp:8080
+        http_proxy=http://proxy.wdf.sap.corp:8080
+        https_proxy=http://proxy.wdf.sap.corp:8080
+        ftp_proxy=http://proxy.wdf.sap.corp:8080
+        no_proxy=sap.corp,localhost,127.0.0.1
+    - path: /etc/systemd/system/docker.service.d/10-proxy.conf
+      permissions: 0644
+      content: |
+        [Service]
+        EnvironmentFile=/etc/environment
+    - path: /etc/systemd/system/update-engine.service.d/10-proxy.conf
+      permissions: 0644
+      content: |
+        [Service]
+        EnvironmentFile=/etc/environment
+    - path: /etc/ntp.conf
+      permissions: 0644
+      content: |
+        server timehost1.wdf.sap.corp
+        server timehost2.wdf.sap.corp
+        server timehost3.wdf.sap.corp
+
+        restrict default nomodify nopeer noquery limited kod
+        restrict 127.0.0.1
+        restrict [::1]
+    - path: /run/systemd/network/10-dhcp.network
+      permissions: 0644
+      content: |
+        [Network]
+        DHCP=true
+
+        [DHCP]
+        UseMTU=true
+        UseHostname=false
+        UseRoutes=true
+        CriticalConnection=true
+    - path: /run/systemd/system/etcd.service.d/10-oem.conf
+      permissions: 0644
+      content: |
+        [Service]
+        Environment=ETCD_PEER_ELECTION_TIMEOUT=1200
+
+coreos:
+    units:
+      - name: metadata-route.service
+        command: start
+        content: |
+          [Unit]
+          Description=Metadata Service Zeroconf Route
+          Wants=network.target
+          Before=network.target
+          BindsTo=sys-subsystem-net-devices-ens32.device
+          After=sys-subsystem-net-devices-ens32.device
+  
+          [Service]
+          Type=oneshot
+          RemainAfterExit=yes
+          StandardOutput=journal+console
+          ExecStart=/usr/bin/ip route add 169.254.0.0/16 dev ens32 scope link
+      - name: oem-cloudinit.service
+        command: restart
+        runtime: yes
+        content: |
+          [Unit]
+          Description=Cloudinit from EC2-style metadata
+
+          [Service]
+          Type=oneshot
+          ExecStart=/usr/bin/coreos-cloudinit --from-metadata-service
+      - name: etcd.service
+        command: start
+      - name: fleet.service
+        command: start
+      - name: ntpd.service
+        command: restart
+      - name: docker.service
+        command: restart
+      - name: update-engine.service
+        command: restart
+    oem:
+      id: sap-monsoon
+      name: SAP Monsoon
+      version-id: @@OEM_VERSION_ID@@
+      home-url: https://monsoon.mo.sap.corp/
+      bug-report-url: https://github.com/coreos/bugs/issues
