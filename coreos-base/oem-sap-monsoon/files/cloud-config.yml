@@ -17,7 +17,7 @@ write_files:
         http_proxy=http://proxy.wdf.sap.corp:8080
         https_proxy=http://proxy.wdf.sap.corp:8080
         ftp_proxy=http://proxy.wdf.sap.corp:8080
-        no_proxy=sap.corp,localhost,127.0.0.1
+        no_proxy=sap.corp,localhost,127.0.0.1,169.254.169.254
     - path: /etc/systemd/system/docker.service.d/10-proxy.conf
       permissions: 0644
       content: |
@@ -54,9 +54,41 @@ write_files:
       content: |
         [Service]
         Environment=ETCD_PEER_ELECTION_TIMEOUT=1200
+    - path: /etc/ssl/certs/SAPNetCA.pem
+      permission: 0644
+      content: |
+        -----BEGIN CERTIFICATE-----
+        MIICrjCCAhegAwIBAgIEAQAAADANBgkqhkiG9w0BAQUFADBpMQswCQYDVQQGEwJE
+        RTEPMA0GA1UEChMGU0FQLUFHMQ8wDQYDVQQLEwZTQVBOZXQxETAPBgNVBAMTCFNB
+        UE5ldENBMSUwIwYJKoZIhvcNAQkBFhZtYWlrLm11ZWxsZXJAc2FwLWFnLmRlMB4X
+        DTk4MDUwNDExNTYzNFoXDTE1MDcxODEyMDAwMFowaTELMAkGA1UEBhMCREUxDzAN
+        BgNVBAoTBlNBUC1BRzEPMA0GA1UECxMGU0FQTmV0MREwDwYDVQQDEwhTQVBOZXRD
+        QTElMCMGCSqGSIb3DQEJARYWbWFpay5tdWVsbGVyQHNhcC1hZy5kZTCBnzANBgkq
+        hkiG9w0BAQEFAAOBjQAwgYkCgYEA35NK6MmmrCLvur4BDhugFe2FUfwJlvErafBb
+        fvn+mkn8jxC/Kl0trTsQADJzYUnCdDLyToRLns0+cdwrIhLaQut+Cj4S2LRCwzMl
+        fZ0oVQ7R26Ds+2akKq1qnWY7vmh+l4/C/DMWTiblwWM7l1nDH/1hmh8HYaxoxTzH
+        ePv8M80CAwEAAaNjMGEwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAfYw
+        HQYDVR0OBBYEFHsML5k8S+CTBufa93/qcpFiOaDJMB8GA1UdIwQYMBaAFHsML5k8
+        S+CTBufa93/qcpFiOaDJMA0GCSqGSIb3DQEBBQUAA4GBAA61FS0kkYWzYVJtLrbv
+        xuec7ttFNiYEFQt1+s/CSSHcXwISxPC3G/cqYsCzbqIZ33JfV0A0lihiPU85TFFq
+        0eC2Vx8+/wYwwD0BNyXc/M5/WdjIJCmtMUctQPZG09FFNQ+4DdnvhxXdCsJwRw1x
+        p1MY+FvHmFhom/BK5CWcU7eA
+        -----END CERTIFICATE-----
 
 coreos:
     units:
+      - name: updatecertificates.service
+        command: start
+        content: |
+          [Unit]
+          Description=Update the certificates w/ self-signed root CAs
+          Before=etcd.service
+          Before=docker.service
+
+          [Service]
+          ExecStart=/usr/sbin/update-ca-certificates
+          RemainAfterExit=yes
+          Type=oneshot
       - name: metadata-route.service
         command: start
         content: |
@@ -72,6 +104,37 @@ coreos:
           RemainAfterExit=yes
           StandardOutput=journal+console
           ExecStart=/usr/bin/ip route add 169.254.0.0/16 dev ens32 scope link
+      - name: monsoon-mcollective.service
+        command: start
+        content: |
+          [Unit]
+          Description=Monsoon mCollective
+          After=docker.service
+          After=metadata-route.service
+
+          [Service]
+          TimeoutStartSec=0
+          KillMode=none
+          EnvironmentFile=/etc/environment
+          ExecStartPre=-/usr/bin/docker kill mco
+          ExecStartPre=-/usr/bin/docker rm mco
+          ExecStartPre=/usr/bin/docker pull docker.mo.sap.corp/monsoon/mcollective 
+          ExecStart=/usr/bin/docker run --name mco -d docker.mo.sap.corp/monsoon/mcollective 
+          ExecStop=/usr/bin/docker stop mco
+      - name: vmware-tools.service
+        command: start
+        content: |
+          [Unit]
+          Description=VMWare Tools
+          After=systemd-networkd.service
+
+          [Service]
+          Restart=always
+          TimeoutStartSec=1200s
+          ExecStartPre=-/usr/bin/docker rm vmware-tools
+          ExecStart=/usr/bin/docker run --net=host --privileged --name vmware-tools sergeyzh/vmware-tools
+          ExecStop=-/usr/bin/docker stop vmware-tools
+          ExecStopPost=-/usr/bin/docker rm vmware-tools
       - name: oem-cloudinit.service
         command: restart
         runtime: yes
