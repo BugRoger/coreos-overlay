@@ -116,10 +116,9 @@ coreos:
           TimeoutStartSec=0
           KillMode=none
           EnvironmentFile=/etc/environment
-          ExecStartPre=-/usr/bin/docker kill mco
-          ExecStartPre=-/usr/bin/docker rm mco
-          ExecStartPre=/usr/bin/docker pull docker.mo.sap.corp/monsoon/mcollective 
-          ExecStart=/usr/bin/docker run --name mco -d docker.mo.sap.corp/monsoon/mcollective 
+          ExecStartPre=-/usr/bin/docker rm -f mco
+          ExecStartPre=-/usr/bin/docker pull docker.mo.sap.corp/monsoon/mcollective 
+          ExecStart=/usr/bin/docker run --name mco -d -v /:/host docker.mo.sap.corp/monsoon/mcollective 
           ExecStop=/usr/bin/docker stop mco
       - name: vmware-tools.service
         command: start
@@ -127,14 +126,15 @@ coreos:
           [Unit]
           Description=VMWare Tools
           After=systemd-networkd.service
+          After=docker.service
 
           [Service]
           Restart=always
           TimeoutStartSec=1200s
-          ExecStartPre=-/usr/bin/docker rm vmware-tools
-          ExecStart=/usr/bin/docker run --net=host --privileged --name vmware-tools sergeyzh/vmware-tools
-          ExecStop=-/usr/bin/docker stop vmware-tools
-          ExecStopPost=-/usr/bin/docker rm vmware-tools
+          ExecStartPre=-/usr/bin/docker rm -f vmware-tools
+          ExecStartPre=-/usr/bin/docker pull docker.mo.sap.corp/monsoon/vmware-tools
+          ExecStart=/usr/bin/docker run --net=host --privileged --name vmware-tools docker.mo.sap.corp/monsoon/vmware-tools
+          ExecStop=/usr/bin/docker stop vmware-tools
       - name: oem-cloudinit.service
         command: restart
         runtime: yes
@@ -145,6 +145,35 @@ coreos:
           [Service]
           Type=oneshot
           ExecStart=/usr/bin/coreos-cloudinit --from-metadata-service
+      - name: docker-tcp.socket
+        command: start
+        enable: yes
+        content: |
+          [Unit]
+          Description=Docker Socket for the API
+
+          [Socket]
+          ListenStream=2375
+          BindIPv6Only=both
+          Service=docker.service
+
+          [Install]
+          WantedBy=sockets.target
+      - name: enable-docker-tcp.service
+        command: start
+        content: |
+          [Unit]
+          Description=Enable the Docker Socket for the API
+
+          [Service]
+          ExecStartPre=/usr/bin/systemctl stop docker.socket
+          ExecStartPre=/usr/bin/systemctl stop docker-tcp.socket
+          ExecStartPre=/usr/bin/systemctl stop docker
+          ExecStart=/usr/bin/systemctl enable docker-tcp.socket
+          ExecStartPost=/usr/bin/systemctl start docker.socket
+          ExecStartPost=/usr/bin/systemctl start docker-tcp.socket
+          Type=oneshot
+          RemainAfterExit=true
       - name: etcd.service
         command: start
       - name: fleet.service
