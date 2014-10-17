@@ -6,7 +6,12 @@ users:
       - sudo
       - docker
     ssh-authorized-keys:
-    - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAvFapuevZeHFpFn438XMjvEQYd0wt7+tzUdAkMiSd007Tx1h79Xm9ZziDDUe4W6meinVOq93MAS/ER27hoVWGo2H/vn/Cz5M8xr2j5rQODnrF3RmfrJTbZAWaDN0JTq2lFjmCHhZJNhr+VQP1uw4z2ofMBP6MLybnLmm9ukzxFYZqCCyfEEUTCMA9SWywtTpGQp8VLM4INCxzBSCuyt3SO6PBvJSo4HoKg/sLvmRwpCVZth48PI0EUbJ72wp88Cw3bv8CLce2TOkLMwkE6NRN55w2aOyqP1G3vixHa6YcVaLlkQhJoJsBwE3rX5603y2KjOhMomqHfXxXn/3GKTWlsQ==
+      - ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAvFapuevZeHFpFn438XMjvEQYd0wt7+tzUdAkMiSd007Tx1h79Xm9ZziDDUe4W6meinVOq93MAS/ER27hoVWGo2H/vn/Cz5M8xr2j5rQODnrF3RmfrJTbZAWaDN0JTq2lFjmCHhZJNhr+VQP1uw4z2ofMBP6MLybnLmm9ukzxFYZqCCyfEEUTCMA9SWywtTpGQp8VLM4INCxzBSCuyt3SO6PBvJSo4HoKg/sLvmRwpCVZth48PI0EUbJ72wp88Cw3bv8CLce2TOkLMwkE6NRN55w2aOyqP1G3vixHa6YcVaLlkQhJoJsBwE3rX5603y2KjOhMomqHfXxXn/3GKTWlsQ==
+  - name: core
+    groups:
+      - sudo
+      - core
+    passwd: $1$TwAGbIPv$Z25ZDN5NVJK3sTj.OsGiY0
 
 write_files:
     - path: /etc/environment
@@ -113,8 +118,8 @@ coreos:
           After=metadata-route.service
 
           [Service]
-          TimeoutStartSec=0
-          KillMode=none
+          Restart=always
+          TimeoutStartSec=1200s
           EnvironmentFile=/etc/environment
           ExecStartPre=-/usr/bin/docker rm -f mco
           ExecStartPre=-/usr/bin/docker pull docker.mo.sap.corp/monsoon/mcollective 
