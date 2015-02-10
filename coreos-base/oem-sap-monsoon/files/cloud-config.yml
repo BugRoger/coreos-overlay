@@ -121,10 +121,10 @@ coreos:
           Restart=always
           TimeoutStartSec=1200s
           EnvironmentFile=/etc/environment
-          ExecStartPre=-/usr/bin/docker rm -f mco
-          ExecStartPre=-/usr/bin/docker pull docker.mo.sap.corp/monsoon/mcollective 
-          ExecStart=/usr/bin/docker run --name mco -d -v /:/host docker.mo.sap.corp/monsoon/mcollective 
-          ExecStop=/usr/bin/docker stop mco
+          ExecStartPre=-/usr/bin/docker rm -f mcollective
+          ExecStartPre=-/usr/bin/docker pull docker.mo.sap.corp/monsoon/mcollective-bare
+          ExecStart=/usr/bin/docker run --name mcollective -v /bin:/bin -v /dev:/dev -v /etc:/etc -v /home:/home -v /lib:/lib -v /lib64:/lib64 -v /proc:/proc -v /run:/run -v /run:/
+          ExecStop=/usr/bin/docker stop mcollective
       - name: vmware-tools.service
         command: start
         content: |
