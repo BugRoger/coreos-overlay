@@ -109,22 +109,6 @@ coreos:
           RemainAfterExit=yes
           StandardOutput=journal+console
           ExecStart=/usr/bin/ip route add 169.254.0.0/16 dev ens32 scope link
-      - name: monsoon-mcollective.service
-        command: start
-        content: |
-          [Unit]
-          Description=Monsoon mCollective
-          After=docker.service
-          After=metadata-route.service
-
-          [Service]
-          Restart=always
-          TimeoutStartSec=1200s
-          EnvironmentFile=/etc/environment
-          ExecStartPre=-/usr/bin/docker rm -f mcollective
-          ExecStartPre=-/usr/bin/docker pull docker.mo.sap.corp/monsoon/mcollective-bare
-          ExecStart=/usr/bin/docker run --name mcollective -v /bin:/bin -v /dev:/dev -v /etc:/etc -v /home:/home -v /lib:/lib -v /lib64:/lib64 -v /proc:/proc -v /run:/run -v /run:/
-          ExecStop=/usr/bin/docker stop mcollective
       - name: vmware-tools.service
         command: start
         content: |
