@@ -15,7 +15,10 @@ IUSE=""
 # no source directory
 S="${WORKDIR}"
 
-RDEPEND="dev-lang/python-oem"
+DEPEND="
+	app-emulation/open-vm-tools
+	"
+RDEPEND="${DEPEND}"
 
 src_prepare() {
     sed -e "s\\@@OEM_VERSION_ID@@\\${PVR}\\g" \
