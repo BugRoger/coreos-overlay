@@ -131,6 +131,7 @@ coreos:
           [Unit]
           Description=Publish Facts to Monsoon
           After=docker.service
+          After=metadata-route.service
 
           [Service]
           Type=oneshot
