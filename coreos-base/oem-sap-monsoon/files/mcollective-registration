@@ -1,0 +1,28 @@
+#!/bin/bash
+
+METADATA_URL="http://169.254.169.254/latest/monsoon/user-data"
+block-until-url "${METADATA_URL}"
+
+source /usr/lib/os-release
+
+# We want to grab the GROUP variable
+[ -e /usr/share/coreos/update.conf ] && source /usr/share/coreos/update.conf
+[ -e /etc/coreos/update.conf ] && source /etc/coreos/update.conf
+
+METADATA=( $(curl -s http://169.254.169.254/latest/monsoon/user-data | grep -o -E '"(identity|host).*"' | sort | sed -r "s/.*\"(.*)\"$/\1/g") )
+STOMP_HOST=${METADATA[0]}
+IDENTITY=${METADATA[1]}
+PLATFORM="CoreOS"
+PLATFORM_FAMILY="coreos"
+PLATFORM_VERSION="${GROUP} (${VERSION_ID})"
+
+FACTS=$(cat <<EOF
+{
+  "platform": "$PLATFORM",
+  "platform_family": "$PLATFORM_FAMILY",
+  "platform_version": "$PLATFORM_VERSION"
+}
+EOF
+)
+
+echo -e "$FACTS" | docker run --rm -i -e STOMP_HOST=$STOMP_HOST -e IDENTITY=$IDENTITY docker.mo.sap.corp/monsoon/mcollective-registration
