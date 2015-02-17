@@ -135,6 +135,7 @@ coreos:
 
           [Service]
           Type=oneshot
+          TimeoutStartSec=120s
           EnvironmentFile=/etc/environment
           ExecStartPre=/usr/bin/docker pull docker.mo.sap.corp/monsoon/mcollective-registration
           ExecStart=/usr/share/oem/bin/mcollective-registration
