@@ -26,6 +26,9 @@ src_prepare() {
 }
 
 src_install() {
+	into "/usr/share/oem"
+	dobin ${FILESDIR}/mcollective-registration
+
 	insinto "/usr/share/oem"
 	doins ${T}/cloud-config.yml
 }
