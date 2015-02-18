@@ -77,18 +77,6 @@ write_files:
 
 coreos:
     units:
-      - name: updatecertificates.service
-        command: start
-        content: |
-          [Unit]
-          Description=Update the certificates w/ self-signed root CAs
-          Before=etcd.service
-          Before=docker.service
-
-          [Service]
-          ExecStart=/usr/sbin/update-ca-certificates
-          RemainAfterExit=yes
-          Type=oneshot
       - name: metadata-route.service
         command: start
         content: |
@@ -104,16 +92,6 @@ coreos:
           RemainAfterExit=yes
           StandardOutput=journal+console
           ExecStart=/usr/bin/ip route add 169.254.0.0/16 dev ens32 scope link
-      - name: oem-cloudinit.service
-        command: restart
-        runtime: yes
-        content: |
-          [Unit]
-          Description=Cloudinit from EC2-style metadata
-
-          [Service]
-          Type=oneshot
-          ExecStart=/usr/bin/coreos-cloudinit --from-metadata-service
       - name: vmtoolsd.service
         command: start
         content: |
@@ -125,6 +103,45 @@ coreos:
           ExecStartPre=/usr/bin/ln -sfT /usr/share/oem/vmware-tools /etc/vmware-tools
           ExecStart=/usr/share/oem/bin/vmtoolsd
           TimeoutStopSec=5
+      - name: monsoon-certs.service
+        command: start
+        content: |
+          [Unit]
+          Description=Fetch Monsoon CA and machine certificates/keys
+          Before=updatecertificates.service
+          After=metadata-route.service
+          [Service]
+          Type=oneshot
+          RemainAfterExit=yes
+          ExecStart=/usr/share/oem/bin/monsoon-certs
+      - name: updatecertificates.service
+        command: start
+        content: |
+          [Unit]
+          Description=Update the certificates w/ self-signed root CAs
+          Before=etcd.service
+          Before=docker.service
+
+          [Service]
+          ExecStart=/usr/sbin/update-ca-certificates
+          RemainAfterExit=yes
+          Type=oneshot
+      - name: oem-cloudinit.service
+        command: restart
+        runtime: yes
+        content: |
+          [Unit]
+          Description=Cloudinit from EC2-style metadata
+
+          [Service]
+          Type=oneshot
+          ExecStart=/usr/bin/coreos-cloudinit --from-metadata-service
+      - name: ntpd.service
+        command: restart
+      - name: docker.service
+        command: restart
+      - name: update-engine.service
+        command: restart
       - name: mcollective-registration.service
         command: start
         content: |
@@ -146,23 +163,6 @@ coreos:
           OnCalendar=hourly
           OnBootSec=15s
           Unit=mcollective-registration.service
-      - name: ntpd.service
-        command: restart
-      - name: docker.service
-        command: restart
-      - name: update-engine.service
-        command: restart
-      - name: monsoon-certs.service
-        command: start
-        content: |
-          [Unit]
-          Description=Fetch Monsoon CA and machine certificates/keys
-          Before=updatecertificates.service
-          After=metadata-route.service
-          [Service]
-          Type=oneshot
-          RemainAfterExit=yes
-          ExecStart=/usr/share/oem/bin/monsoon-certs
     oem:
       id: sap-monsoon
       name: SAP Monsoon
