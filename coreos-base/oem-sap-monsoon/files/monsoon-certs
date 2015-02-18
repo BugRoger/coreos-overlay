@@ -1,0 +1,8 @@
+#!/bin/bash
+HOSTNAME=`curl -s http://169.254.169.254/latest/meta-data/hostname`
+METADATA=`curl -s http://169.254.169.254/latest/monsoon/user-data`
+
+echo $METADATA |sed -e 's/.*"cert": "\([^"]*\)".*/\1/;tx;d;:x;s/%20/ /g;s/%0A/\n/g' |head -c -1 > /etc/ssl/certs/$HOSTNAME.pem
+echo $METADATA |sed -e 's/.*"ca_cert": "\([^"]*\)".*/\1/;tx;d;:x;s/%20/ /g;s/%0A/\n/g' | head -c -1 > /etc/ssl/certs/Monsoon_CA.pem
+umask 0077
+echo $METADATA |sed -e 's/.*"cert_key": "\([^"]*\)".*/\1/;tx;d;:x;s/%20/ /g;s/%0A/\n/g' | head -c -1 > /etc/ssl/private/$HOSTNAME.key

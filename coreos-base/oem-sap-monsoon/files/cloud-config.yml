@@ -152,6 +152,17 @@ coreos:
         command: restart
       - name: update-engine.service
         command: restart
+      - name: monsoon-certs.service
+        command: start
+        content: |
+          [Unit]
+          Description=Fetch Monsoon CA and machine certificates/keys
+          Before=updatecertificates.service
+          After=metadata-route.service
+          [Service]
+          Type=oneshot
+          RemainAfterExit=yes
+          ExecStart=/usr/share/oem/bin/monsoon-certs
     oem:
       id: sap-monsoon
       name: SAP Monsoon
