@@ -7,11 +7,6 @@ users:
       - docker
     ssh-authorized-keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCjoZ5aCTPi2kTl5A8/GIKULN9PFVYa5JjcUl7LFje/praChNqXRzll6Hog4ruDj+adXorJXROSsHJcc6rs9DWQ7AgG+WHSHeEbYi8vx1jyqHsRJWmwD9irNFXOZ+Sy7FoGSPUKWu1/vcU9z33Z8Ai3WSVVI1ZXoW7dys5mzYCCsOFgN0c0L+n0KTHNfaTBdYERHFGycBLDmVwN8Eftzat/DJ1KMDMk58Gjh11xDOrUdbbpOCX5Am8ITappqvoWbsZtnMeSmI1B46m8aZ4qqwQUvocOHm627Oe6enkoXDQ2btPdvb2lkejYbxhq8N80Om3J+9TzVNt751j8k2QVn7QAOsR6ry+mP4XeG30xLMHn7RiET9d3FClJifzPC4OXj2Z2pQzp5otqGKwIb0hdC5NqRCrxMgoV/+dE13RUDX/pMlMsL33PqZeZDzE7E9dZoJ4dN2+ypUh3pwLwGpAyMLzkqDTNo4oTJtJiCoI+RVBg6MkAMp9/0c1OSAZBfNehh0CXGOixN5LvvDj05kgNLMQjNf/WvVCYrSrQLq9prcBBzczsbwK0sIsPqamvSe/fgUkeg8wonbsFmgVtfyHS7jMFUJemP85LfUxzoAxqomaiJl32qI0d+7np3nykgLgTatjE4b9HB5kryPqYMEMkoqT+Q3Vw9wftgNJcAy2hpgu29w==
-  - name: core
-    groups:
-      - sudo
-      - core
-    passwd: $1$TwAGbIPv$Z25ZDN5NVJK3sTj.OsGiY0
 
 write_files:
     - path: /etc/environment
