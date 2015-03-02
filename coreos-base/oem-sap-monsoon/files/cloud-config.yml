@@ -158,6 +158,24 @@ coreos:
           OnCalendar=hourly
           OnBootSec=15s
           Unit=mcollective-registration.service
+      - name: monsoon-iptables.service
+        command: start
+        content: |
+          [Unit]
+          Description=Set Monsoon Iptables
+          After=metadata-route.service
+
+          [Service]
+          Type=oneshot
+          ExecStart=/usr/share/oem/bin/monsoon-iptables
+      - name: monsoon-iptables.timer
+        command: start
+        content: |
+          [Timer]
+          OnCalendar=*:0/5
+          OnBootSec=15s
+          Unit=monsoon-iptables.service
+
     oem:
       id: sap-monsoon
       name: SAP Monsoon
