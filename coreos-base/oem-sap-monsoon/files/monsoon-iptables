@@ -3,4 +3,5 @@
 METADATA_URL="http://169.254.169.254/latest/monsoon/security-groups/rules"
 block-until-url "${METADATA_URL}"
 
+echo "Updating Monsoon IPTable Rules from Metadata"
 curl -s ${METADATA_URL} | iptables-restore
