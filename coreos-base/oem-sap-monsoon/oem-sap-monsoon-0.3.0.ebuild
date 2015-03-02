@@ -29,6 +29,7 @@ src_install() {
 	into "/usr/share/oem"
 	dobin ${FILESDIR}/mcollective-registration
 	dobin ${FILESDIR}/monsoon-certs
+	dobin ${FILESDIR}/monsoon-iptables
 
 	insinto "/usr/share/oem"
 	doins ${T}/cloud-config.yml
