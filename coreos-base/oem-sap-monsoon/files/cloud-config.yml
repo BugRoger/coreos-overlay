@@ -164,7 +164,6 @@ coreos:
           OnBootSec=15s
           Unit=mcollective-registration.service
       - name: monsoon-iptables.service
-        command: start
         content: |
           [Unit]
           Description=Set Monsoon Iptables
@@ -174,7 +173,6 @@ coreos:
           Type=oneshot
           ExecStart=/usr/share/oem/bin/monsoon-iptables
       - name: monsoon-iptables.timer
-        command: start
         content: |
           [Timer]
           OnCalendar=*:0/5
