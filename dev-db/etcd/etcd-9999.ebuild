@@ -30,7 +30,6 @@ RDEPEND="!dev-db/etcd:0
 	!dev-db/etcdctl"
 
 src_compile() {
-	GO_LDFLAGS="-X ${COREOS_GO_PACKAGE}/version.GitSHA ${CROS_WORKON_COMMIT:0:7}"
 	go_build "${COREOS_GO_PACKAGE}"
 	go_build "${COREOS_GO_PACKAGE}/etcdctl"
 }
