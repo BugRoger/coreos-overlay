@@ -18,6 +18,14 @@ write_files:
         https_proxy=http://proxy.wdf.sap.corp:8080
         ftp_proxy=http://proxy.wdf.sap.corp:8080
         no_proxy=sap.corp,localhost,127.0.0.1,169.254.169.254,/var/run/docker.sock,/var/run/early-docker.sock
+    - path: /etc/udev/rules.d/90-monsoon-ami-devices.rules
+      permissions: 0644
+      content: |
+        KERNEL=="sd[a-e]", SUBSYSTEM=="block", ENV{ID_MODEL}=="Virtual_disk", PROGRAM="/usr/share/oem/bin/monsoon-ami-udev %k", SYMLINK+="%c"
+    - path: /etc/udev/rules.d/91-monsoon-device-alias.rules
+      permissions: 0644
+      content: |
+        KERNEL=="sd*[!0-9]", SUBSYSTEM=="block", ENV{ID_MODEL}=="Virtual_disk", PROGRAM="/usr/share/oem/bin/monsoon-device-alias", SYMLINK+="%c"
     - path: /etc/systemd/system/docker.service.d/10-proxy.conf
       permissions: 0644
       content: |
@@ -123,14 +131,14 @@ coreos:
           Description=Metadata Service Zeroconf Route
           Wants=network.target
           Before=network.target
-          BindsTo=sys-subsystem-net-devices-ens32.device
-          After=sys-subsystem-net-devices-ens32.device
+          BindsTo=sys-subsystem-net-devices-ens192.device
+          After=sys-subsystem-net-devices-ens192.device
   
           [Service]
           Type=oneshot
           RemainAfterExit=yes
           StandardOutput=journal+console
-          ExecStart=/usr/bin/ip route add 169.254.0.0/16 dev ens32 scope link
+          ExecStart=/usr/bin/ip route add 169.254.0.0/16 dev ens192 scope link
       - name: vmtoolsd.service
         command: start
         content: |
@@ -165,6 +173,7 @@ coreos:
           ExecStart=/usr/sbin/update-ca-certificates
           RemainAfterExit=yes
           Type=oneshot
+
       - name: oem-cloudinit.service
         command: restart
         runtime: yes
@@ -180,6 +189,8 @@ coreos:
       - name: docker.service
         command: restart
       - name: update-engine.service
+        command: restart
+      - name: systemd-udev-trigger.service
         command: restart
       - name: mcollective-registration.service
         command: start

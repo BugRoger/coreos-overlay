@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ -z "$ID_PATH" ] ; then
+  echo "$0 ID_PATH" >&2
+  exit 1
+else
+  LUN=$(echo $ID_PATH| cut -d ':' -f 5 )
+
+  if [ -z "$LUN" ]; then
+    exit 1
+  fi
+
+  ALIAS=$(curl -s http://169.254.169.254/latest/meta-data/block-device-mapping/ebs$LUN)
+
+  if [ -n "$ALIAS" ]; then
+    echo $ALIAS | rev | cut -d '/' -f 1 | rev
+  else
+    exit 1
+  fi
+fi

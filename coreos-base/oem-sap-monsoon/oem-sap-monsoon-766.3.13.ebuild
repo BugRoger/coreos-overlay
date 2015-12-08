@@ -18,7 +18,8 @@ S="${WORKDIR}"
 DEPEND="
 	app-emulation/open-vm-tools
 	"
-RDEPEND="${DEPEND}"
+RDEPEND="${DEPEND}
+"
 
 src_prepare() {
     sed -e "s\\@@OEM_VERSION_ID@@\\${PVR}\\g" \
@@ -30,6 +31,8 @@ src_install() {
 	dobin ${FILESDIR}/mcollective-registration
 	dobin ${FILESDIR}/monsoon-certs
 	dobin ${FILESDIR}/monsoon-iptables
+	dobin ${FILESDIR}/monsoon-ami-udev
+	dobin ${FILESDIR}/monsoon-device-alias
 
 	insinto "/usr/share/oem"
 	doins ${T}/cloud-config.yml
