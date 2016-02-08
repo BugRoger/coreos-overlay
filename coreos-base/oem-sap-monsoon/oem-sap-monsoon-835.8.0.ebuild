@@ -16,8 +16,9 @@ IUSE=""
 S="${WORKDIR}"
 
 DEPEND="
-	app-emulation/open-vm-tools
-	"
+        sys-block/open-iscsi 
+        net-misc/quagga
+        "
 RDEPEND="${DEPEND}
 "
 
